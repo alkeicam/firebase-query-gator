@@ -1,0 +1,43 @@
+{
+  "name": "firebase-query-gator",
+  "version": "1.0.0",
+  "description": "Simple Query Gateway for Firebase",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "mocha",
+    "coverage": "nyc --reporter html --reporter text npm test",
+    "local-publish": "npm install --registry http://0.0.0.0:4873 && npm test && npm run coverage && npm version patch && npm publish --registry http://0.0.0.0:4873 && git push origin && git push origin --tags"  
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alkeicam/firebase-query-gator.git"
+  },
+  "keywords": [
+    "firebase",
+    "query"
+  ],
+  "author": "Maciej Grula <maciej.grula@execon.pl>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/alkeicam/firebase-query-gator/issues"
+  },
+  "homepage": "https://github.com/alkeicam/firebase-query-gator#readme",
+  "devDependencies": {
+    "paytip-mocks": "1.0.x",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "firebase-functions-test": "^0.1.7",
+    "firebase-functions": "3.3.x",
+    "firebase-admin": "8.8.x",
+    "mocha": "^5.0.5",
+    "sinon": "^4.1.3",
+    "nyc": "14.1.x"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "branches": 100,
+    "lines": 100,
+    "functions": 100,
+    "statements": 100
+  }
+}
