@@ -1,0 +1,20 @@
+@startuml
+class SingleColumnQueryDTO {
+    {field} r (reference - a path to the root of the collection that is queried)
+    {field} o (orderBy - name/path of the child property that will be used for sorting)    
+    {field} d (orderBy direction 'a' - ascending,'d' - descending - sorting direction)    
+    {field} s (page size - how many elements to show on single page)
+    {field} n (starting element of a new page - where to start current page)
+    {field} v (filer value - that value MUST be matched by all returned elements)
+}
+
+class QueryResultDTO {
+    {field} d (data array - contains entities returned  by query)
+    {field} d[i].v (value - object returned from query)
+    {field} d[i].k (key - object key returned from query)
+    {field} m (metadata - additional data for result)    
+    {field} m.s (size of data array)    
+    {field} m.r (query reference that was generated)
+    {field} m.n (starting element of a new page - to be used when requesting next page)    
+}
+@enduml
