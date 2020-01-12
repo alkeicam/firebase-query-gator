@@ -375,11 +375,13 @@ class Query {
     }
 
     where(column, value) {
-        this.tokens.push({
-            kind: 'WHERE',
-            operands: [column, value]
-        })
-        this.whereCount++;
+        if(column!=null){
+            this.tokens.push({
+                kind: 'WHERE',
+                operands: [column, value]
+            })
+            this.whereCount++;
+        }        
         return this;
     }
     whereIn(column, array) {
@@ -404,28 +406,35 @@ class Query {
         this.andCount++;
         return this;
     }
-    orderBy(column, direction) {        
-        this.tokens.push({
-            kind: 'ORDER_BY',
-            operands: [column, direction==undefined ? 'a' : direction]
-        })
-        this.orderByCount++;
+    orderBy(column, direction) {  
+        if(column!=null){
+            this.tokens.push({
+                kind: 'ORDER_BY',
+                operands: [column, direction==undefined ? 'a' : direction]
+            })
+            this.orderByCount++;
+        }              
         return this;
     }
     limit(value) {
-        this.tokens.push({
-            kind: 'LIMIT',
-            operands: [value]
-        })
-        this.limitCount++;
+        if(value!=null){
+            this.tokens.push({
+                kind: 'LIMIT',
+                operands: [value]
+            })
+            this.limitCount++;
+        }        
         return this;
     }
     start(value) {
-        this.tokens.push({
-            kind: 'START',
-            operands: [value]
-        })
-        this.startCount++;
+        if(value!=null){
+            this.tokens.push({
+                kind: 'START',
+                operands: [value]
+            })
+            this.startCount++;
+        }
+        
         return this;
     }
 
