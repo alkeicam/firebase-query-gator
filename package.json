@@ -22,6 +22,9 @@
     "url": "https://github.com/alkeicam/firebase-query-gator/issues"
   },
   "homepage": "https://github.com/alkeicam/firebase-query-gator#readme",
+  "dependencies": {
+    "object-resolve-path": "1.1"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
@@ -35,9 +38,9 @@
   },
   "nyc": {
     "check-coverage": true,
-    "branches": 100,
-    "lines": 100,
-    "functions": 100,
-    "statements": 100
+    "branches": 88,
+    "lines": 94,
+    "functions": 90,
+    "statements": 94
   }
 }

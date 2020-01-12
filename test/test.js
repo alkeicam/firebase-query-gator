@@ -578,7 +578,7 @@ describe('Gator', () => {
         let REFERENCE = 'some/reference';
         let DIRECTION = 'a';
         let VALUE = 'malina';
-        let COLUMN = 'property/field';
+        let COLUMN = 'name';
         let LIMIT = 2;
         let START_ELEMNT = 'wisnia';
         let START = {
@@ -678,7 +678,7 @@ describe('Gator', () => {
             
             promise = query.execute();
             return promise.then(result=>{
-                return expect(result.m.n).equal(END);
+                return expect(result.m.n).equal(END.name);
             })            
         }) 
         it('descending - make sure that proper elements are returned (1)', () => {
@@ -714,7 +714,7 @@ describe('Gator', () => {
             
             promise = query.execute();
             return promise.then(result=>{
-                return expect(result.m.n).equal(START);
+                return expect(result.m.n).equal(START.name);
             })            
         }) 
         it('descending - make sure that calls will be made (1)', () => {
@@ -769,6 +769,147 @@ describe('Gator', () => {
                 return expect(call.args[0]).equal(START_ELEMNT);
             })            
         })
+         
+        
+    
+
+    
+    });
+    describe('multi column orderBy with where and pagination query', () => {
+        let REFERENCE = 'some/reference';
+        let DIRECTION = 'a';
+        let VALUE = 'malina';
+        let FILTER_COLUMN = 'prop2/field3';
+        let ORDER_BY_COLUMN = 'address/city';
+        let LIMIT = 2;
+        let START_ELEMENT = 'Warsaw';
+        let START = {
+            name: 'John',
+            surname: 'Pawlak',
+            address: {
+                city: 'Warsaw'
+            }
+        }
+        let MID = {
+            name: 'Chris',
+            surname: 'September',
+            address: {
+                city: 'Gdansk'
+            }
+        }
+        let END = {
+            name: 'Zieg',
+            surname: 'Ziegler',
+            address: {
+                city: 'Poznań'
+            }
+        }
+
+        beforeEach(() => {            
+            theModule = require('../');
+            ref = new ReferenceMock();
+            obcStub = ref.stubOrderByChild();
+            etStub = ref.stubEqualTo();
+            ltlStub = ref.stubLimitToLast();
+            ltfStub = ref.stubLimitToFirst();
+            saStub = ref.stubStartAt();
+            eaStub = ref.stubEndAt();
+
+            s1 = new SnapshotMock();
+            s1.stubVal(START);
+            s2 = new SnapshotMock();
+            s2.stubVal(MID);
+            s3 = new SnapshotMock();
+            s3.stubVal(END);
+            snapArray = [ s1, s2, s3];
+            snap = new SnapshotMock();
+            snap.stubExists(true);
+            snap.stubForEach(snapArray);
+            oStub = ref.stubOnce(new Promise(function(resolve, reject){
+                resolve(snap);
+            }))
+            
+            dbMock = new DatabaseMock();
+            dbMock.stubRefWithMatcher(ref, sinon.match(REFERENCE));
+            theModule.init(dbMock);
+        });
+        afterEach(() => {   
+            dbMock.stubsRestore();         
+            obcStub.restore();
+            etStub.restore();
+            ltlStub.restore();
+            ltfStub.restore();
+            saStub.restore();
+            eaStub.restore();
+            oStub.restore();            
+        });
+        
+        it('make sure that returned array size matches limit', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(ORDER_BY_COLUMN,DIRECTION);
+            query = query.where(FILTER_COLUMN, VALUE);
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                
+                return expect(result.m.s).equal(LIMIT);
+            })            
+        })   
+        it('ascending - make sure that returned array is properly ordered (1)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(ORDER_BY_COLUMN,DIRECTION);
+            query = query.where(FILTER_COLUMN, VALUE);
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                
+                return expect(result.d[0].v).equal(MID);
+            })            
+        })
+        it('ascending - make sure that returned array is properly ordered (2)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(ORDER_BY_COLUMN,DIRECTION);
+            query = query.where(FILTER_COLUMN, VALUE);
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                
+                return expect(result.d[1].v).equal(END);
+            })            
+        })
+        it('ascending - make sure that proper next element is returned', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(ORDER_BY_COLUMN,DIRECTION);
+            query = query.where(FILTER_COLUMN, VALUE);
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                
+                return expect(result.m.n).equal(START.address.city);
+            })            
+        })
+        it('ascending - make sure that pagination works', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(ORDER_BY_COLUMN,DIRECTION);
+            query = query.where(FILTER_COLUMN, VALUE);
+            query = query.limit(LIMIT);
+            query = query.start(START_ELEMENT);
+            
+            promise = query.execute();
+            return promise.then(result=>{                
+                return expect(result.d.length).equal(1);
+            })            
+        })
+
          
         
     
