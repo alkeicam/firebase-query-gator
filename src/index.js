@@ -86,7 +86,7 @@ class Query {
                 r: that.ref,
                 o: that._getToken('WHERE', 0).operands[0],
                 v: that._getToken('WHERE', 0).operands[1]
-            });
+            }, this.db);
 
             result.m.r = fReference;
 
@@ -138,7 +138,7 @@ class Query {
                 dto.n = that._getToken('START', 0).operands[0];
             }  
 
-            var fReference = this.gator._page(dto);               
+            var fReference = this.gator._page(dto, this.db);               
             result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
@@ -185,7 +185,7 @@ class Query {
                 r: that.ref,
                 o: that._getToken('ORDER_BY', 0).operands[0],
                 d: that._getToken('ORDER_BY', 0).operands[1]
-            });
+            }, this.db);
 
             result.m.r = fReference;
 
@@ -246,7 +246,7 @@ class Query {
                 dto.n = that._getToken('START', 0).operands[0];
             } 
 
-            var fReference = this.gator._page(dto);
+            var fReference = this.gator._page(dto, this.db);
             result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
@@ -306,7 +306,7 @@ class Query {
                 v: that._getToken('WHERE', 0).operands[1]
             };
              
-            var fReference = this.gator._page(dto);
+            var fReference = this.gator._page(dto, this.db);
             result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
@@ -454,8 +454,8 @@ class FirebaseGator {
         this.db = db;
     }
 
-    query(reference) {
-        var query = new Query(this.db, reference, this);
+    query(reference, database) {
+        var query = new Query(database ? database : this.db, reference, this);
         return query;
     }
 
@@ -464,11 +464,11 @@ class FirebaseGator {
      * @param {*} db 
      * @param {SingleColumnQueryDTO} queryDTO 
      */
-    _page(singleColumnQueryDTO) {
+    _page(singleColumnQueryDTO, database) {
 
         var query = this._parseQuery(singleColumnQueryDTO);
 
-        var queryReference = this.db.ref(query.reference);
+        var queryReference = database.ref(query.reference);
         queryReference = query.orderBy ? queryReference.orderByChild(query.orderBy) : queryReference;
         queryReference = query.filter ? queryReference.equalTo(query.filter) : queryReference;
 

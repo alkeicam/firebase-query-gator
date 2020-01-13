@@ -81,7 +81,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(obcStub.called, 'orderBy not called');           
         })   
         it('equalTo', () => {
@@ -93,7 +93,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(etStub.called,'equalTo not called');
         })                
         it('pagination ascending 1', () => {
@@ -105,7 +105,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(ltfStub.called, 'limitToFirst not called');           
         }) 
         it('pagination ascending 2', () => {
@@ -117,7 +117,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(saStub.called, 'startAt not called');           
         }) 
         it('pagination descending 1', () => {
@@ -129,7 +129,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(ltlStub.called, 'limitToLast not called');           
         }) 
         it('pagination descending 2', () => {
@@ -141,7 +141,7 @@ describe('Gator', () => {
                 n: 'startEl',
                 v: 'value'
             }
-            queryRef = theModule._page(dto);            
+            queryRef = theModule._page(dto, dbMock);            
             return assert(eaStub.called, 'endAt not called');           
         }) 
     });
