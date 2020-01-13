@@ -46,17 +46,17 @@ class Query {
         })
 
         return Promise.all(promisesArray).then(results=>{
-            console.log('Got results', results);
+            
             var returnValue = undefined;
             results.some(result=>{
-                console.log('Processing result', result);
+                
                 if(result.m.e){                    
                     returnValue = result;
                     return true;
                 }
                 return false;                    
             })
-            
+            console.log('Returning result: ', result);
             return returnValue;
         })            
     }
@@ -90,7 +90,7 @@ class Query {
                 v: that._getToken('WHERE', 0).operands[1]
             }, this.db);
 
-            result.m.r = fReference;
+            //result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
                 var data = [];
@@ -141,7 +141,7 @@ class Query {
             }  
 
             var fReference = this.gator._page(dto, this.db);               
-            result.m.r = fReference;
+            //result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
                 var data = [];
@@ -189,7 +189,7 @@ class Query {
                 d: that._getToken('ORDER_BY', 0).operands[1]
             }, this.db);
 
-            result.m.r = fReference;
+            //result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
                 var data = [];
@@ -249,7 +249,7 @@ class Query {
             } 
 
             var fReference = this.gator._page(dto, this.db);
-            result.m.r = fReference;
+            //result.m.r = fReference;
 
             return fReference.once('value').then(elements => {
                 var data = [];
@@ -315,10 +315,10 @@ class Query {
                 o: that._getToken('WHERE', 0).operands[0],                
                 v: that._getToken('WHERE', 0).operands[1]
             };
-            console.log('DTO ', dto); 
+            
             var fReference = this.gator._page(dto, this.db);
-            result.m.r = fReference;
-            console.log('Reference ', fReference);
+            //result.m.r = fReference;
+            
             return fReference.once('value').then(elements => {
                 var data = [];
                 if (elements.exists()) {
@@ -331,7 +331,7 @@ class Query {
                 }
                 console.log('Got elements from Firebase', data.length);
                 
-                console.log('data is: ', that._debugArray(data, 10));
+                
                                 
                 
                 // need to apply sorting and pagination
@@ -346,12 +346,7 @@ class Query {
 
                     var result = direction == 'a' ? ascResult : -1 * ascResult;
                     return result;
-                })
-
-                console.log('data is: ', that._debugArray(data, 10));
-
-                
-
+                })        
                 // now lets tackle pagination
                 var limit = -1;
                 if(this.limitCount>0){
@@ -371,7 +366,7 @@ class Query {
                 
 
                 var returnArray = data.slice(index, limit == -1 ? undefined : limit);
-                console.log('data is: ', that._debugArray(returnArray, 10));
+                
                 
                 if(this.limitCount>0){
                     if(returnArray.length==limit)
@@ -381,8 +376,7 @@ class Query {
                 console.log('data is: ', that._debugArray(returnArray, 10));
                 result.d = returnArray;                
                 result.m.s = returnArray.length;
-                result.m.e = true;
-                console.log('result is: ', result);
+                result.m.e = true;                
                 return result;
             })
         } else {
