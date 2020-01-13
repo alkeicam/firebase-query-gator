@@ -305,10 +305,10 @@ class Query {
                 o: that._getToken('WHERE', 0).operands[0],                
                 v: that._getToken('WHERE', 0).operands[1]
             };
-             
+            console.log('DTO ', dto); 
             var fReference = this.gator._page(dto, this.db);
             result.m.r = fReference;
-
+            console.log('Reference ', fReference);
             return fReference.once('value').then(elements => {
                 var data = [];
                 if (elements.exists()) {
@@ -319,6 +319,7 @@ class Query {
                         })
                     });
                 }
+                console.log('Got elements from Firebase', data.length);
                 
                 // need to apply sorting and pagination
                 // here goes sorting
