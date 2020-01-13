@@ -278,6 +278,14 @@ class Query {
             });
         }
     }
+    _debugArray(array, howMany){
+        var debugString = '[';
+        for(var i=0; i < array.length && i < howMany;i++){
+            debugString += array[i]+','
+        }
+        debugString += ']';
+        return debugString;
+    }
     _multiColumnSortWithFilterAndPagination(tokens) {
         var that = this;
 
@@ -321,6 +329,9 @@ class Query {
                 }
                 console.log('Got elements from Firebase', data.length);
                 
+                console.log('data is: ', that._debugArray(data, 10));
+                                
+                
                 // need to apply sorting and pagination
                 // here goes sorting
                 var sortField = that._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
@@ -334,6 +345,8 @@ class Query {
                     var result = direction == 'a' ? ascResult : -1 * ascResult;
                     return result;
                 })
+
+                console.log('data is: ', that._debugArray(data, 10));
 
                 
 
@@ -356,13 +369,14 @@ class Query {
                 
 
                 var returnArray = data.slice(index, limit == -1 ? undefined : limit);
-                
+                console.log('data is: ', that._debugArray(returnArray, 10));
                 
                 if(this.limitCount>0){
                     if(returnArray.length==limit)
                         result.m.n = resolvePath(returnArray.pop().v, sortField);
                 }
                     
+                console.log('data is: ', that._debugArray(returnArray, 10));
                 result.d = returnArray;                
                 result.m.s = returnArray.length;
                 result.m.e = true;
