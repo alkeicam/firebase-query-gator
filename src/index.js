@@ -56,7 +56,7 @@ class Query {
                 }
                 return false;                    
             })
-            console.log('Returning result: ', result);
+            console.log('Returning result: ', returnValue);
             return returnValue;
         })            
     }
