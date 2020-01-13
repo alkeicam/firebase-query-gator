@@ -46,8 +46,10 @@ class Query {
         })
 
         return Promise.all(promisesArray).then(results=>{
+            console.log('Got results', results);
             var returnValue = undefined;
             results.some(result=>{
+                console.log('Processing result', result);
                 if(result.m.e){                    
                     returnValue = result;
                     return true;
@@ -380,6 +382,7 @@ class Query {
                 result.d = returnArray;                
                 result.m.s = returnArray.length;
                 result.m.e = true;
+                console.log('result is: ', result);
                 return result;
             })
         } else {
