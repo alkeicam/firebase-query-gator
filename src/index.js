@@ -130,6 +130,83 @@ class SingleColumnSort extends QueryHandler{
         return {n: n, data: resultArray};
     }
 }
+
+class SingleColumnSortWithPagination extends QueryHandler{
+    willHandle(query){
+        return query.orderByCount == 1 && query.limitCount == 1 && query.whereCount == 0 && query.whereInCount == 0;
+    }
+
+    preQuery(query){
+        console.log('Using SingleColumnSortWithPagination');   
+        var limit = query._getToken('LIMIT', 0).operands[0] + 1;             
+        var dto = {
+            r: query.ref,
+            o: query._getToken('ORDER_BY', 0).operands[0],
+            d: query._getToken('ORDER_BY', 0).operands[1],
+            s: limit
+        };
+
+        if (query.startCount == 1) {
+            dto.n = query._getToken('START', 0).operands[0];
+        } 
+        return dto;
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray, query){
+        var n = undefined;                        
+        return {n: n, data: dataArray};
+    }
+}
+
+class SingleColumnSortWithFilterAndPagination extends QueryHandler{
+    willHandle(query){
+        return query.orderByCount == 1 
+        && query.whereCount == 1 
+        && query._getToken('ORDER_BY', 0).operands[0] == query._getToken('WHERE', 0).operands[0] // same column
+        && query.whereInCount == 0
+    }
+
+    preQuery(query){
+        console.log('Using SingleColumnSortWithFilterAndPagination');
+
+        var dto = {
+            r: query.ref,
+            o: query._getToken('ORDER_BY', 0).operands[0],
+            d: query._getToken('ORDER_BY', 0).operands[1],
+            v: query._getToken('WHERE', 0).operands[1]
+        };
+        
+        if (query.limitCount > 0) {
+            dto.s = query._getToken('LIMIT', 0).operands[0] + 1;
+        }
+        if (query.startCount > 0) {
+            dto.n = query._getToken('START', 0).operands[0];
+        } 
+
+        return dto;
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray, query){
+        var n = undefined;    
+        var direction = query._getToken('ORDER_BY', 0).operands[1];
+        var sortField = query._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
+        var workingData = direction == 'a' ? dataArray : dataArray.reverse();
+
+        if (query.limitCount > 0) {
+            //if(workingData.length == limit)
+            n = resolvePath(workingData.pop().v, sortField);
+        }
+        
+        return {n: n, data: workingData};
+    }
+}
+
 class Query {
     constructor(databseReference, reference, gator) {
         this.tokens = []
@@ -163,7 +240,9 @@ class Query {
         var queriesHandlers = [
             new SingleColumnFilter(),
             new SingleColumnFilterWithPagination(),
-            new SingleColumnSort()
+            new SingleColumnSort(),
+            new SingleColumnSortWithPagination(),
+            new SingleColumnSortWithFilterAndPagination()
         ];
 
         var resultPromise = undefined;
@@ -193,120 +272,6 @@ class Query {
             return tokensMatching[which];
     }
 
-
-    _singleColumnSort(tokens) {
-        var that = this;
-
-        var result = {
-            d: [],
-            m: {
-                e: false,
-                s: undefined, // size of d
-                r: undefined, // query reference generated
-                n: undefined // next element (for pagination)
-            }
-        };
-        if (this.orderByCount == 1 && this.limitCount == 0 && this.whereCount == 0 && this.whereInCount == 0) {
-            console.log('Using _singleColumnSort');
-            var direction = that._getToken('ORDER_BY', 0).operands[1];
-            
-            var fReference = this.gator._page({
-                r: that.ref,
-                o: that._getToken('ORDER_BY', 0).operands[0],
-                d: that._getToken('ORDER_BY', 0).operands[1]
-            }, this.db);
-
-            //result.m.r = fReference;
-
-            return fReference.once('value').then(elements => {
-                var data = [];
-                if (elements.exists()) {
-                    elements.forEach(snap => {
-                        data.push({
-                            v: snap.val(),
-                            k: snap.key
-                        })
-                    });
-                }
-                
-                result.d = direction == 'a' ? data : data.reverse();
-                result.m.s = data.length;
-                result.m.e = true;
-                return result;
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                resolve(result);
-            });
-        }
-    }
-    _singleColumnSortWithFilterAndPagination(tokens) {
-        var that = this;
-
-        var result = {
-            d: [],
-            m: {
-                e: false,
-                s: undefined, // size of d
-                r: undefined, // query reference generated
-                n: undefined // next element (for pagination)
-            }
-        };
-
-        if (
-            this.orderByCount == 1 
-            && this.whereCount == 1 
-            && that._getToken('ORDER_BY', 0).operands[0] == that._getToken('WHERE', 0).operands[0] // same column
-            && this.whereInCount == 0) {
-            console.log('Using _singleColumnSortWithFilterAndPagination');
-            var direction = that._getToken('ORDER_BY', 0).operands[1];
-            
-            var dto = {
-                r: that.ref,
-                o: that._getToken('ORDER_BY', 0).operands[0],
-                d: that._getToken('ORDER_BY', 0).operands[1],                
-                v: that._getToken('WHERE', 0).operands[1]
-            };
-            var sortField = that._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
-            if(this.limitCount>0){
-                dto.s = that._getToken('LIMIT', 0).operands[0]+1;
-            }
-            if(this.startCount>0){
-                dto.n = that._getToken('START', 0).operands[0];
-            } 
-
-            var fReference = this.gator._page(dto, this.db);
-            //result.m.r = fReference;
-
-            return fReference.once('value').then(elements => {
-                var data = [];
-                if (elements.exists()) {
-                    elements.forEach(snap => {
-                        data.push({
-                            v: snap.val(),
-                            k: snap.key
-                        })
-                    });
-                }
-                var workingData = direction == 'a' ? data : data.reverse();
-
-                if(this.limitCount>0){
-                    //if(workingData.length == limit)
-                        result.m.n = resolvePath(workingData.pop().v,sortField);
-                }
-                    
-                result.d = workingData;
-                
-                result.m.s = workingData.length;
-                result.m.e = true;
-                return result;
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                resolve(result);
-            });
-        }
-    }
     _debugArray(array, howMany){
         var debugString = '[';
         for(var i=0; i < array.length && i < howMany;i++){
