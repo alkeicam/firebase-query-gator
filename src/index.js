@@ -103,6 +103,33 @@ class SingleColumnFilterWithPagination extends QueryHandler{
         return {n: n, data: resultArray};
     }
 }
+class SingleColumnSort extends QueryHandler{
+    willHandle(query){
+        return query.orderByCount == 1 && query.limitCount == 0 && query.whereCount == 0 && query.whereInCount == 0;
+    }
+
+    preQuery(query){
+        console.log('Using SingleColumnSort');                
+        return {
+            r: query.ref,
+            o: query._getToken('ORDER_BY', 0).operands[0],
+            d: query._getToken('ORDER_BY', 0).operands[1]
+        };
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray, query){
+        var n = undefined;        
+        var resultArray = dataArray;
+        var direction = query._getToken('ORDER_BY', 0).operands[1];
+
+        resultArray = direction == 'a' ? resultArray : resultArray.reverse();
+        
+        return {n: n, data: resultArray};
+    }
+}
 class Query {
     constructor(databseReference, reference, gator) {
         this.tokens = []
@@ -135,7 +162,8 @@ class Query {
         // jak nie ma to znaczy ze nie 
         var queriesHandlers = [
             new SingleColumnFilter(),
-            new SingleColumnFilterWithPagination()
+            new SingleColumnFilterWithPagination(),
+            new SingleColumnSort()
         ];
 
         var resultPromise = undefined;
@@ -164,59 +192,7 @@ class Query {
         if (tokensMatching.length > 0 && tokensMatching.length >= which)
             return tokensMatching[which];
     }
-    
-    _singleColumnFilterWithPagination(tokens) {
-        var that = this;
 
-        var result = {
-            d: [],
-            m: {
-                e: false,
-                s: undefined, // size of d
-                r: undefined, // query reference generated
-                n: undefined // next element (for pagination)
-            }
-        };
-        if (this.whereCount == 1 && this.limitCount==1 && this.orderByCount == 0 && this.whereInCount == 0) {
-            console.log('Using _singleColumnFilterWithPagination');
-            var limit = that._getToken('LIMIT', 0).operands[0]+1 ;
-            var dto = {
-                r: that.ref,
-                o: that._getToken('WHERE', 0).operands[0],
-                v: that._getToken('WHERE', 0).operands[1],
-                s: limit               
-            }
-            
-            if(this.startCount == 1){
-                dto.n = that._getToken('START', 0).operands[0];
-            }  
-
-            var fReference = this.gator._page(dto, this.db);               
-            //result.m.r = fReference;
-
-            return fReference.once('value').then(elements => {
-                var data = [];
-                if (elements.exists()) {
-                    elements.forEach(snap => {
-                        data.push({
-                            v: snap.val(),
-                            k: snap.ref
-                        })
-                    });
-                }
-                if(data.length == limit)
-                    result.m.n = data.pop().v;
-                result.d = data;
-                result.m.s = data.length;
-                result.m.e = true;
-                return result;
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                resolve(result);
-            });
-        }
-    }
 
     _singleColumnSort(tokens) {
         var that = this;
