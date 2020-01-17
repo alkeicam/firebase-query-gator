@@ -13,7 +13,7 @@ class QueryHandler {
         throw new Error('Subclass Implementation Required!');
     }
 
-    postQuery(dataArray){
+    postQuery(dataArray, query){
         throw new Error('Subclass Implementation Required!');
     }  
 
@@ -33,7 +33,7 @@ class QueryHandler {
                     })
                 });
             }
-            var processedResultObject = this.postQuery(data);
+            var processedResultObject = this.postQuery(data, query);
 
             var result = { 
                 m: {}               
@@ -67,6 +67,42 @@ class SingleColumnFilter extends QueryHandler{
         return {data: dataArray};
     }
 }
+class SingleColumnFilterWithPagination extends QueryHandler{
+    willHandle(query){
+        return query.whereCount == 1 && query.limitCount==1 && query.orderByCount == 0 && query.whereInCount == 0
+    }
+
+    preQuery(query){
+        console.log('Using _singleColumnFilterWithPagination');
+        var limit = query._getToken('LIMIT', 0).operands[0] + 1;
+        var dto = {
+            r: query.ref,
+            o: query._getToken('WHERE', 0).operands[0],
+            v: query._getToken('WHERE', 0).operands[1],
+            s: limit
+        }
+
+        if (query.startCount == 1) {
+            dto.n = query._getToken('START', 0).operands[0];
+        }  
+
+        return dto;
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray, query){
+        var n = undefined;
+        var limit = query._getToken('LIMIT', 0).operands[0] + 1;
+
+        var resultArray = dataArray;
+
+        if(dataArray.length == limit)
+            n  = resultArray.pop().v;
+        return {n: n, data: resultArray};
+    }
+}
 class Query {
     constructor(databseReference, reference, gator) {
         this.tokens = []
@@ -98,11 +134,9 @@ class Query {
         // find orderBy
         // jak nie ma to znaczy ze nie 
         var queriesHandlers = [
-            new SingleColumnFilter()
+            new SingleColumnFilter(),
+            new SingleColumnFilterWithPagination()
         ];
-
-        
-
 
         var resultPromise = undefined;
         var promisesArray = [];
@@ -112,10 +146,9 @@ class Query {
             if(willHandle){
                 promisesArray.push(handler._process(that));                       
             }                        
-        })
+        })        
 
-        return Promise.all(promisesArray).then(results=>{
-            
+        return Promise.all(promisesArray).then(results=>{            
             var returnValue = undefined;
             returnValue = results[0];            
             console.log('Returning result: ', returnValue);
@@ -131,51 +164,7 @@ class Query {
         if (tokensMatching.length > 0 && tokensMatching.length >= which)
             return tokensMatching[which];
     }
-
-    _singleColumnFilter(tokens) {
-        var that = this;
-
-        var result = {
-            d: [],
-            m: {
-                e: false, // whether the result is an execution result
-                s: undefined, // size of d
-                r: undefined, // query reference generated
-                n: undefined // next element (for pagination)
-            }
-        };
-        if (this.whereCount == 1 && this.limitCount==0 && this.orderByCount == 0 && this.whereInCount == 0) {
-            console.log('Using _singleColumnFilter');
-            var fReference = this.gator._page({
-                r: that.ref,
-                o: that._getToken('WHERE', 0).operands[0],
-                v: that._getToken('WHERE', 0).operands[1]
-            }, this.db);
-
-            //result.m.r = fReference;
-
-            return fReference.once('value').then(elements => {
-                var data = [];
-                if (elements.exists()) {
-                    elements.forEach(snap => {
-                        data.push({
-                            v: snap.val(),
-                            k: snap.ref
-                        })
-                    });
-                }
-
-                result.d = data;
-                result.m.s = data.length;
-                result.m.e = true;
-                return result;
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                resolve(result);
-            });
-        }
-    }
+    
     _singleColumnFilterWithPagination(tokens) {
         var that = this;
 
