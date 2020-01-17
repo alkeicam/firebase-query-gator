@@ -574,6 +574,114 @@ describe('Gator', () => {
 
     
     });
+    describe('orderBy with pagination query', () => {
+        let REFERENCE = 'some/reference';
+        let DIRECTION = 'a';
+        let VALUE = 'malina';
+        let COLUMN = 'name';
+        let LIMIT = 2;
+        let START_ELEMNT = 'wisnia';
+        let START = {
+            name: 'John',
+            surname: 'Pawlak'
+        }
+        let MID = {
+            name: 'Chris',
+            surname: 'September'
+        }
+        let END = {
+            name: 'Zieg',
+            surname: 'Ziegler'
+        }
+
+        beforeEach(() => {            
+            theModule = require('../');
+            ref = new ReferenceMock();
+            obcStub = ref.stubOrderByChild();
+            etStub = ref.stubEqualTo();
+            ltlStub = ref.stubLimitToLast();
+            ltfStub = ref.stubLimitToFirst();
+            saStub = ref.stubStartAt();
+            eaStub = ref.stubEndAt();
+
+            s1 = new SnapshotMock();
+            s1.stubVal(START);
+            s2 = new SnapshotMock();
+            s2.stubVal(MID);
+            s3 = new SnapshotMock();
+            s3.stubVal(END);
+            snapArray = [ s1, s2, s3];
+            snap = new SnapshotMock();
+            snap.stubExists(true);
+            snap.stubForEach(snapArray);
+            oStub = ref.stubOnce(new Promise(function(resolve, reject){
+                resolve(snap);
+            }))
+            
+            dbMock = new DatabaseMock();
+            dbMock.stubRefWithMatcher(ref, sinon.match(REFERENCE));
+            theModule.init(dbMock);
+        });
+        afterEach(() => {   
+            dbMock.stubsRestore();         
+            obcStub.restore();
+            etStub.restore();
+            ltlStub.restore();
+            ltfStub.restore();
+            saStub.restore();
+            eaStub.restore();
+            oStub.restore();            
+        });
+        
+        it('descending - make sure that calls will be made (1)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(COLUMN,query.DIRECTION.DESC);            
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                call = ltlStub.getCall(0);
+                return expect(call.args[0]).equal(LIMIT+1);
+            })            
+        }) 
+        it('descending - make sure that calls will be made (2)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(COLUMN,query.DIRECTION.ASC);            
+            query = query.limit(LIMIT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                call = ltfStub.getCall(0);
+                return expect(call.args[0]).equal(LIMIT+1);
+            })            
+        }) 
+        it('descending - make sure that calls will be made (3)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(COLUMN,query.DIRECTION.ASC);            
+            query = query.limit(LIMIT).start(START_ELEMNT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                call = saStub.getCall(0);
+                return expect(call.args[0]).equal(START_ELEMNT);
+            })            
+        }) 
+        it('descending - make sure that calls will be made (4)', () => {
+            query = theModule.query(REFERENCE); 
+            
+            query = query.orderBy(COLUMN,query.DIRECTION.DESC);            
+            query = query.limit(LIMIT).start(START_ELEMNT);
+            
+            promise = query.execute();
+            return promise.then(result=>{
+                call = eaStub.getCall(0);
+                return expect(call.args[0]).equal(START_ELEMNT);
+            })            
+        })
+    });
     describe('orderBy with where and pagination query', () => {
         let REFERENCE = 'some/reference';
         let DIRECTION = 'a';
@@ -769,11 +877,7 @@ describe('Gator', () => {
                 return expect(call.args[0]).equal(START_ELEMNT);
             })            
         })
-         
-        
-    
 
-    
     });
     describe('multi column orderBy with where and pagination query', () => {
         let REFERENCE = 'some/reference';
@@ -915,8 +1019,5 @@ describe('Gator', () => {
     
 
     
-    });
-    
-
-    //dbMock.stubRefWithMatcher(userWalletReferenceMock10, sinon.match('10UserId'));
+    });    
 });
