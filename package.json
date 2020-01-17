@@ -1,6 +1,6 @@
 {
   "name": "firebase-query-gator",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Simple Query Gateway for Firebase",
   "main": "./src/index.js",
   "scripts": {
