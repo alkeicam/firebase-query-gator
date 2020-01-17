@@ -207,6 +207,76 @@ class SingleColumnSortWithFilterAndPagination extends QueryHandler{
     }
 }
 
+class MultiColumnSortWithFilterAndPagination extends QueryHandler{
+    willHandle(query){
+        return query.orderByCount == 1 
+        && query.whereCount == 1 
+        && query._getToken('ORDER_BY', 0).operands[0] != query._getToken('WHERE', 0).operands[0] // different columns used in orderBy and where
+        && query.whereInCount == 0
+    }
+
+    preQuery(query){
+        console.log('Using MultiColumnSortWithFilterAndPagination');
+
+        var dto = {
+            r: query.ref,
+            o: query._getToken('WHERE', 0).operands[0],                
+            v: query._getToken('WHERE', 0).operands[1]
+        };
+
+        return dto;
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray, query){
+        var n = undefined;    
+        // need to apply sorting and pagination
+        // here goes sorting
+        var sortField = query._getToken('ORDER_BY', 0).operands[0].replace(/\//g, '.'); // replace "/" to object dot notation
+        var direction = query._getToken('ORDER_BY', 0).operands[1];
+        dataArray.sort((a, b) => {
+            var aValue = resolvePath(a.v, sortField);
+            var bValue = resolvePath(b.v, sortField);
+            var typeOfValue = typeof aValue;
+
+            var ascResult = aValue > bValue ? 1 : -1;
+
+            var result = direction == 'a' ? ascResult : -1 * ascResult;
+            return result;
+        })
+
+        // now lets tackle pagination
+        var limit = -1;
+        if (query.limitCount > 0) {
+            limit = query._getToken('LIMIT', 0).operands[0] + 1;
+        }
+        var startElement = undefined;
+        if (query.startCount > 0) {
+            startElement = query._getToken('START', 0).operands[0];
+        }
+        var index = 0;
+        if (startElement != undefined) {
+            index = dataArray.findIndex(element => {
+                var value = resolvePath(element.v, sortField);
+                return value == startElement;
+            })
+        }
+
+
+        var returnArray = dataArray.slice(index, limit == -1 ? undefined : limit);
+
+
+        if (query.limitCount > 0) {
+            if (returnArray.length == limit)
+                n = resolvePath(returnArray.pop().v, sortField);
+        }
+        
+        return {n: n, data: returnArray};
+    }
+}
+
 class Query {
     constructor(databseReference, reference, gator) {
         this.tokens = []
@@ -242,7 +312,8 @@ class Query {
             new SingleColumnFilterWithPagination(),
             new SingleColumnSort(),
             new SingleColumnSortWithPagination(),
-            new SingleColumnSortWithFilterAndPagination()
+            new SingleColumnSortWithFilterAndPagination(),
+            new MultiColumnSortWithFilterAndPagination()
         ];
 
         var resultPromise = undefined;
@@ -279,103 +350,6 @@ class Query {
         }
         debugString += ']';
         return debugString;
-    }
-    _multiColumnSortWithFilterAndPagination(tokens) {
-        var that = this;
-
-        var result = {
-            d: [],
-            m: {
-                e: false,
-                s: undefined, // size of d
-                r: undefined, // query reference generated
-                n: undefined // next element (for pagination)
-            }
-        };
-
-        if (
-            this.orderByCount == 1 
-            && this.whereCount == 1 
-            && that._getToken('ORDER_BY', 0).operands[0] != that._getToken('WHERE', 0).operands[0] // different columns used in orderBy and where
-            && this.whereInCount == 0) {
-            console.log('Using _multiColumnSortWithFilterAndPagination');
-            var direction = that._getToken('ORDER_BY', 0).operands[1];
-            
-            // start with a where Firebase query
-            var dto = {
-                r: that.ref,
-                o: that._getToken('WHERE', 0).operands[0],                
-                v: that._getToken('WHERE', 0).operands[1]
-            };
-            
-            var fReference = this.gator._page(dto, this.db);
-            //result.m.r = fReference;
-            
-            return fReference.once('value').then(elements => {
-                var data = [];
-                if (elements.exists()) {
-                    elements.forEach(snap => {
-                        data.push({
-                            v: snap.val(),
-                            k: snap.key
-                        })
-                    });
-                }
-                console.log('Got elements from Firebase', data.length);
-                
-                
-                                
-                
-                // need to apply sorting and pagination
-                // here goes sorting
-                var sortField = that._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
-                data.sort((a,b)=>{
-                    var aValue = resolvePath(a.v, sortField);
-                    var bValue = resolvePath(b.v, sortField);
-                    var typeOfValue = typeof aValue;
-                    
-                    var ascResult = aValue > bValue ? 1 : -1;
-
-                    var result = direction == 'a' ? ascResult : -1 * ascResult;
-                    return result;
-                })        
-                // now lets tackle pagination
-                var limit = -1;
-                if(this.limitCount>0){
-                    limit = that._getToken('LIMIT', 0).operands[0]+1;
-                }
-                var startElement = undefined;
-                if(this.startCount>0){
-                    startElement = that._getToken('START', 0).operands[0];
-                } 
-                var index = 0;
-                if(startElement!=undefined){
-                    index = data.findIndex(element=>{
-                        var value = resolvePath(element.v, sortField);
-                        return value == startElement;
-                    })
-                }
-                
-
-                var returnArray = data.slice(index, limit == -1 ? undefined : limit);
-                
-                
-                if(this.limitCount>0){
-                    if(returnArray.length==limit)
-                        result.m.n = resolvePath(returnArray.pop().v, sortField);
-                }
-                    
-                console.log('data is: ', that._debugArray(returnArray, 10));
-                result.d = returnArray;                
-                result.m.s = returnArray.length;
-                result.m.e = true;                
-                return result;
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                resolve(result);
-            });
-        }
     }
 
     where(column, value) {
