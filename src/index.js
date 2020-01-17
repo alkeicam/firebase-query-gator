@@ -35,7 +35,8 @@ class QueryHandler {
             }
             var processedResultObject = this.postQuery(data);
 
-            var result = {                
+            var result = { 
+                m: {}               
             };
             
             result.d = processedResultObject.data;
