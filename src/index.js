@@ -1,5 +1,71 @@
 var resolvePath = require('object-resolve-path');
+class QueryHandler {
+    willHandle(query){
+        throw new Error('Subclass Implementation Required!');
+    }
 
+    /**
+     * 
+     * @param {*} query 
+     * @returns {*} dto do zapytania
+     */
+    preQuery(query){
+        throw new Error('Subclass Implementation Required!');
+    }
+
+    postQuery(dataArray){
+        throw new Error('Subclass Implementation Required!');
+    }  
+
+    /**
+     * @returns {*} Promise
+     */
+    process(query){
+        var firegatorQuery = this.preQuery(query);
+        var fReference = query.gator._page(firegatorQuery, query.db);
+        return fReference.once('value').then(elements => {
+            var data = [];
+            if (elements.exists()) {
+                elements.forEach(snap => {
+                    data.push({
+                        v: snap.val(),
+                        k: snap.ref
+                    })
+                });
+            }
+            var processedResultObject = this.postQuery(data);
+
+            var result = {                
+            };
+            
+            result.d = processedResultObject.data;
+            result.m.s = processedResultObject.data.length;
+            result.m.n = processedResultObject.n;
+            result.m.e = true;
+            return result;
+        });
+    }
+}
+class SingleColumnFilter extends QueryHandler{
+    willHandle(query){
+        return query.whereCount == 1 && query.limitCount==0 && query.orderByCount == 0 && query.whereInCount == 0
+    }
+
+    preQuery(query){
+        return {
+            r: query.ref,
+            o: query._getToken('WHERE', 0).operands[0],
+            v: query._getToken('WHERE', 0).operands[1]
+        }
+    }
+    /**
+     * 
+     * @param {*} resultData {n: next, data: dataArray}
+     */
+    postQuery(dataArray){
+        return {data: dataArray};
+    }
+}
 class Query {
     constructor(databseReference, reference, gator) {
         this.tokens = []
@@ -26,36 +92,31 @@ class Query {
      * @returns Promise that resolves when query performed successfully, or rejects in case of error
      */
     execute() {
+        var that = this;
         // console.log('Executing: '+this);
         // find orderBy
         // jak nie ma to znaczy ze nie 
         var queriesHandlers = [
-            this._singleColumnFilter,
-            this._singleColumnFilterWithPagination,
-            this._singleColumnSort,
-            this._singleColumnSortWithFilterAndPagination,
-            this._multiColumnSortWithFilterAndPagination
-        ]
+            new SingleColumnFilter()
+        ];
+
+        
+
 
         var resultPromise = undefined;
         var promisesArray = [];
 
         queriesHandlers.forEach(handler => {
-            var handlerResult = handler.apply(this, this.tokens);
-            promisesArray.push(handlerResult);                       
+            var willHandle = handler.willHandle(that);
+            if(willHandle){
+                promisesArray.push(handler.process(that));                       
+            }                        
         })
 
         return Promise.all(promisesArray).then(results=>{
             
             var returnValue = undefined;
-            results.some(result=>{
-                
-                if(result.m.e){                    
-                    returnValue = result;
-                    return true;
-                }
-                return false;                    
-            })
+            returnValue = results[0];            
             console.log('Returning result: ', returnValue);
             return returnValue;
         })            
