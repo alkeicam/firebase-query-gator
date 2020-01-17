@@ -20,7 +20,7 @@ class QueryHandler {
     /**
      * @returns {*} Promise
      */
-    process(query){
+    _process(query){
         var firegatorQuery = this.preQuery(query);
         var fReference = query.gator._page(firegatorQuery, query.db);
         return fReference.once('value').then(elements => {
@@ -110,7 +110,7 @@ class Query {
         queriesHandlers.forEach(handler => {
             var willHandle = handler.willHandle(that);
             if(willHandle){
-                promisesArray.push(handler.process(that));                       
+                promisesArray.push(handler._process(that));                       
             }                        
         })
 
