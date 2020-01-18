@@ -42,7 +42,7 @@ class QueryHandler {
             result.d = processedResultObject.data;
             result.m.s = processedResultObject.data.length;
             result.m.n = processedResultObject.n;
-            result.m.a = this.constructor;
+            result.m.a = this.constructor.name;
             result.m.e = true;
             return result;
         });
@@ -99,8 +99,11 @@ class SingleColumnFilterWithPagination extends QueryHandler{
 
         var resultArray = dataArray;
 
-        if(dataArray.length == limit)
-            n  = resultArray.pop().v;
+        if(dataArray.length == limit){
+            var nextElement = resultArray.pop();
+            n  = { k: nextElement.k, v: nextElement.v};
+        }
+            
         return {n: n, data: resultArray};
     }
 }
@@ -159,8 +162,12 @@ class SingleColumnSortWithPagination extends QueryHandler{
     postQuery(dataArray, query){
         var n = undefined;                        
         var limit = query._getToken('LIMIT', 0).operands[0] + 1;
-        if(dataArray.length == limit)
-            n  = dataArray.pop().v;
+        var sortField = query._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
+        if(dataArray.length == limit){
+            var nextElement = dataArray.pop();
+            n  = { k: nextElement.k, v: resolvePath(nextElement.v, sortField)};
+        }
+            
         return {n: n, data: dataArray}
         ;
     }
@@ -202,10 +209,12 @@ class SingleColumnSortWithFilterAndPagination extends QueryHandler{
         var direction = query._getToken('ORDER_BY', 0).operands[1];
         var sortField = query._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
         var workingData = direction == 'a' ? dataArray : dataArray.reverse();
-
+        
         if (query.limitCount > 0) {
             //if(workingData.length == limit)
-            n = resolvePath(workingData.pop().v, sortField);
+            var nextElement = workingData.pop();
+            n  = { k: nextElement.k, v: resolvePath(nextElement.v, sortField)};
+            //n = resolvePath(workingData.pop().v, sortField);
         }
         
         return {n: n, data: workingData};
@@ -274,8 +283,11 @@ class MultiColumnSortWithFilterAndPagination extends QueryHandler{
 
 
         if (query.limitCount > 0) {
-            if (returnArray.length == limit)
-                n = resolvePath(returnArray.pop().v, sortField);
+            if (returnArray.length == limit){
+                var nextElement = returnArray.pop();
+                n  = { k: nextElement.k, v: resolvePath(nextElement.v, sortField)};
+            }
+                //n = resolvePath(returnArray.pop().v, sortField);
         }
         
         return {n: n, data: returnArray};
