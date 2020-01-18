@@ -1,5 +1,9 @@
 var resolvePath = require('object-resolve-path');
 class QueryHandler {
+    name(){
+        throw new Error('Subclass Implementation Required!');
+    }
+
     willHandle(query){
         throw new Error('Subclass Implementation Required!');
     }
@@ -42,14 +46,17 @@ class QueryHandler {
             result.d = processedResultObject.data;
             result.m.s = processedResultObject.data.length;
             result.m.n = processedResultObject.n;
-            result.m.a = this.constructor.name;
-            console.log('MA',result.m.a);
+            result.m.a = this.name();            
             result.m.e = true;
             return result;
         });
     }
 }
 class SingleColumnFilter extends QueryHandler{
+    name(){
+        return 'SCF';
+    }
+
     willHandle(query){
         return query.whereCount == 1 && query.limitCount==0 && query.orderByCount == 0 && query.whereInCount == 0
     }
@@ -70,6 +77,10 @@ class SingleColumnFilter extends QueryHandler{
     }
 }
 class SingleColumnFilterWithPagination extends QueryHandler{
+    name(){
+        return 'SCFWP';
+    }
+
     willHandle(query){
         return query.whereCount == 1 && query.limitCount==1 && query.orderByCount == 0 && query.whereInCount == 0
     }
@@ -109,6 +120,10 @@ class SingleColumnFilterWithPagination extends QueryHandler{
     }
 }
 class SingleColumnSort extends QueryHandler{
+    name(){
+        return 'SCS';
+    }
+
     willHandle(query){
         return query.orderByCount == 1 && query.limitCount == 0 && query.whereCount == 0 && query.whereInCount == 0;
     }
@@ -137,6 +152,10 @@ class SingleColumnSort extends QueryHandler{
 }
 
 class SingleColumnSortWithPagination extends QueryHandler{
+    name(){
+        return 'SCSWP';
+    }
+        
     willHandle(query){
         return query.orderByCount == 1 && query.limitCount == 1 && query.whereCount == 0 && query.whereInCount == 0;
     }
@@ -175,6 +194,10 @@ class SingleColumnSortWithPagination extends QueryHandler{
 }
 
 class SingleColumnSortWithFilterAndPagination extends QueryHandler{
+    name(){
+        return 'SCSWFAP';
+    }
+    
     willHandle(query){
         return query.orderByCount == 1 
         && query.whereCount == 1 
@@ -223,6 +246,10 @@ class SingleColumnSortWithFilterAndPagination extends QueryHandler{
 }
 
 class MultiColumnSortWithFilterAndPagination extends QueryHandler{
+    name(){
+        return 'MCSWFAP';
+    }
+    
     willHandle(query){
         return query.orderByCount == 1 
         && query.whereCount == 1 
