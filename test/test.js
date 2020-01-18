@@ -250,8 +250,8 @@ describe('Gator', () => {
         let LIMIT = 2;
         let START_ELEMNT = 'wisnia';
         let LAST = {
-            name: 'Zieg',
-            surname: 'Ziegler'
+            v: {name: 'Zieg',
+            surname: 'Ziegler'}
         }
 
         beforeEach(() => {            
@@ -328,7 +328,7 @@ describe('Gator', () => {
             promise = query.execute();
             return promise.then(result=>{
                 
-                return expect(result.m.n).equal(LAST);
+                return expect(result.m.n.v).equal(LAST);
             })            
         })
         it('where condition with limit (4)', () => {
@@ -786,7 +786,7 @@ describe('Gator', () => {
             
             promise = query.execute();
             return promise.then(result=>{
-                return expect(result.m.n).equal(END.name);
+                return expect(result.m.n.v).equal(END.name);
             })            
         }) 
         it('descending - make sure that proper elements are returned (1)', () => {
@@ -822,7 +822,7 @@ describe('Gator', () => {
             
             promise = query.execute();
             return promise.then(result=>{
-                return expect(result.m.n).equal(START.name);
+                return expect(result.m.n.v).equal(START.name);
             })            
         }) 
         it('descending - make sure that calls will be made (1)', () => {
@@ -997,7 +997,7 @@ describe('Gator', () => {
             promise = query.execute();
             return promise.then(result=>{
                 
-                return expect(result.m.n).equal(START.address.city);
+                return expect(result.m.n.v).equal(START.address.city);
             })            
         })
         it('ascending - make sure that pagination works', () => {
