@@ -29,7 +29,7 @@ class QueryHandler {
                 elements.forEach(snap => {
                     data.push({
                         v: snap.val(),
-                        k: snap.ref
+                        k: snap.key
                     })
                 });
             }
