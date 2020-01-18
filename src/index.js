@@ -42,6 +42,7 @@ class QueryHandler {
             result.d = processedResultObject.data;
             result.m.s = processedResultObject.data.length;
             result.m.n = processedResultObject.n;
+            result.m.a = this.constructor;
             result.m.e = true;
             return result;
         });
@@ -157,7 +158,11 @@ class SingleColumnSortWithPagination extends QueryHandler{
      */
     postQuery(dataArray, query){
         var n = undefined;                        
-        return {n: n, data: dataArray};
+        var limit = query._getToken('LIMIT', 0).operands[0] + 1;
+        if(dataArray.length == limit)
+            n  = dataArray.pop().v;
+        return {n: n, data: dataArray}
+        ;
     }
 }
 
