@@ -43,6 +43,7 @@ class QueryHandler {
             result.m.s = processedResultObject.data.length;
             result.m.n = processedResultObject.n;
             result.m.a = this.constructor.name;
+            console.log('MA',result.m.a);
             result.m.e = true;
             return result;
         });
