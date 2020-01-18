@@ -183,6 +183,9 @@ class SingleColumnSortWithPagination extends QueryHandler{
         var n = undefined;                        
         var limit = query._getToken('LIMIT', 0).operands[0] + 1;
         var sortField = query._getToken('ORDER_BY', 0).operands[0].replace(/\//g,'.'); // replace "/" to object dot notation
+        var direction = query._getToken('ORDER_BY', 0).operands[1];
+        dataArray = direction == 'a' ? dataArray : dataArray.reverse();
+
         if(dataArray.length == limit){
             var nextElement = dataArray.pop();
             n  = { k: nextElement.k, v: resolvePath(nextElement.v, sortField)};
