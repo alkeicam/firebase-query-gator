@@ -13,7 +13,7 @@ const sinon = require('sinon');
 const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const test = require('firebase-functions-test')();
-const {ReferenceMock, DatabaseMock, SnapshotMock} = require('paytip-mocks');
+const {ReferenceMock, DatabaseMock, SnapshotMock} = require('fire-simple-mocks');
 
 describe('Gator', () => {
     describe('_parseQuery', () => {
