@@ -10,10 +10,7 @@
     * [Output Specification](#Output-Specification)      
     * [Single column where query with pagination](#Single-column-where-query-with-pagination)   
     * [Single column orderby query with pagination](#Single-column-orderby-query-with-pagination)   
-    * [Multi column query](#Multi-column-query)   
-    
-    
-     
+    * [Multi column query](#Multi-column-query)        
 * [Contact](#contact)
 
 ## General info
@@ -115,55 +112,5 @@ query.execute().then(result=>{
     var dataLength = result.m.s;
 });
 ```
-
-## Operations documentation
-### AccountGet
-> Retrieves user account
-
-#### Security
-|Kind| Value | 
-| :--- | :--- | 
-|Resource| `account` | 
-|Action| `read:any` | 
-
-#### Input and output
-|Kind| Parameter | Type | Description |
-| :--- | :--- | :--- | :--- |
-|Argument| `i` | `string` | **Required**. Target user id - id of the user whose data will be retrieved  |
-|Returns|  `d` | `object` | Promise with user data |
-|Returns|  `d.firebaseUser` | `object` | User data - data from firebase associated with user |
-|Returns|  `d.userData` | `object` | User data - data from UserData entity associated with user |
-
-### AccountBlock
-> Sets user account verification status to B-blocked
-
-#### Security
-|Kind| Value | 
-| :--- | :--- | 
-|Resource| `account` | 
-|Action| `update:any` | 
-
-#### Input and output
-|Kind| Parameter | Type | Description |
-| :--- | :--- | :--- | :--- |
-|Argument| `i` | `string` | **Required**. Target user id - id of the user whose account verification status will be set to blocked  |
-|Returns|   |  | Promise resolves on success |
-
-### AccountReset
-> Sets user account verification status to U-Unknown
-
-#### Security
-|Kind| Value | 
-| :--- | :--- | 
-|Resource| `account` | 
-|Action| `update:any` | 
-
-#### Input and output
-|Kind| Parameter | Type | Description |
-| :--- | :--- | :--- | :--- |
-|Argument| `i` | `string` | **Required**. Target user id - id of the user whose account verification status will be set to unknown (which shall trigger new verification process)  |
-|Returns|   |  | Promise resolves on success |
-
-
 ## Contact
 Created by [maciej.grula@xcft](https://www.xcft.pl/) 
