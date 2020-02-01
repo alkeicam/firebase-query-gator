@@ -38,7 +38,7 @@ q.init(db);
 // ...
 ```
 ### Output Specification
-> Performs query using the same column/property for filering 
+> Object {d: data, m: metadata} is returned for each of the execute() calls. Please see below for detailed specification of each field
 
 |Kind| Parameter | Type | Description |
 | :--- | :--- | :--- | :--- |
