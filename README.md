@@ -40,6 +40,8 @@ q.init(db);
 |Kind| Parameter | Type | Description |
 | :--- | :--- | :--- | :--- |
 |Output| `d` | `array` | Result records array  |
+|Output| `d[i].v` | `object` | Actual data object returned as i-th record  |
+|Output| `d[i].k` | `object` | Actual database key returned for i-th record  |
 |Output|  `m.s` | `integer` | Size of result records array |
 |Output|  `m.n` | `string` | Next page starting element (to be used with start() function ) |
 
