@@ -62,7 +62,11 @@ query = query.limit(10).start(START_ELEMNT);
 query.execute().then(result=>{
     // when resolves then operation was success
     // see operations documentation for details    
-    var data = result.d;
+    var records = result.d;
+    var ithRecord = records[i];
+    var ithValue = ithRecord.v;
+    var ithVKey = ithRecord.k;
+
     var dataLength = result.m.s;
 });
 ```
